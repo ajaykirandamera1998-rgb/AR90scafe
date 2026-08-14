@@ -13,20 +13,64 @@
   </head>
   <body>
     <a-scene embedded arjs="patternRatio:0.90" vr-mode-ui="enabled: false">
+      
+      <a-assets>
+        <!-- Added crossorigin, playsinline, muted, and loop attributes for mobile support -->
+        <video 
+          id="video" 
+          src="https://raw.githubusercontent.com/ajaykirandamera1998-rgb/WebAr/main/videos/video1.mp4"
+          preload="auto" 
+          response-type="arraybuffer"
+          crossorigin="anonymous"
+          loop
+          playsinline
+          webkit-playsinline
+          muted>
+        </video>
+      </a-assets>
+
       <a-marker 
+        id="marker"
         type="pattern" 
         url="./marker.patt"
         smooth="true"
         smoothCount="10"
         smoothTolerance="0.01"
         smoothThreshold="5">
-        
-        <!-- Scaled down radius to 0.3 (approx 60cm wide) and raised on Y-axis (0.3) -->
-        <a-sphere position="0 0.3 0" radius="0.3" color="#EF2D5E"></a-sphere>
 
+        <a-video 
+          src="#video" 
+          width="3" 
+          height="1.8" 
+          position="0 0.1 0" 
+          rotation="-90 0 0">
+        </a-video>
       </a-marker>
       
-      <a-entity camera></a-entity>
+      <a-entity camera cursor="fuse: false; rayOrigin: mouse;"></a-entity>
     </a-scene>
+
+    <script>
+      const video = document.getElementById("video");
+      const marker = document.getElementById("marker");
+
+      // Unmute & play video on tap anywhere on the screen
+      window.addEventListener("click", () => {
+        if (video.paused) {
+          video.muted = false; // Unmute sound on user tap
+          video.play();
+        }
+      });
+
+      // Automatically play when marker comes into view
+      marker.addEventListener("markerFound", () => {
+        video.play();
+      });
+
+      // Pause when marker is lost to save battery/resources
+      marker.addEventListener("markerLost", () => {
+        video.pause();
+      });
+    </script>
   </body>
 </html>
