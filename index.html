@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>MEMEVERSE</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+  </head>
+  <body>
+    <a-scene embedded arjs="patternRatio:0.90">
+      <a-marker type="pattern" url="./marker.patt">
+        <a-box position="-1 0.5 -3" rotation="0 45 0" color="#4CC3D9"></a-box>
+        <a-sphere position="0 0 0" radius="1.25" color="#EF2D5E"></a-sphere>
+        <a-sky color="#ECECEC"></a-sky>
+      </a-marker>
+      <a-entity camera></a-entity>
+    </a-scene>
+  </body>
+</html>
