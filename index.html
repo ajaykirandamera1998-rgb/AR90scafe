@@ -3,171 +3,144 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>MEMEVERSE Playlist</title>
-    <link rel="stylesheet" href="styles.css" />
+    <title>MEMEVERSE WebAR</title>
     
-    <!-- A-Frame & AR.js Libraries -->
+    <!-- A-Frame & AR.js -->
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
 
     <style>
-      /* Audio Unmute Overlay Button */
-      #play-btn {
+      #overlay-btn {
         position: fixed;
-        bottom: 30px;
+        bottom: 25px;
         left: 50%;
         transform: translateX(-50%);
-        z-index: 9999;
-        padding: 12px 24px;
-        background-color: #EF2D5E;
+        z-index: 99999;
+        padding: 14px 28px;
+        background: #EF2D5E;
         color: white;
         border: none;
-        border-radius: 25px;
+        border-radius: 30px;
         font-family: sans-serif;
         font-weight: bold;
-        font-size: 16px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        font-size: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.4);
         cursor: pointer;
-        display: none; /* Initially hidden until marker found */
+        display: none;
       }
     </style>
   </head>
   <body style="margin: 0; overflow: hidden;">
 
-    <!-- Tap to Unmute Button (Hidden initially) -->
-    <button id="play-btn">🔊 Tap to Play</button>
+    <button id="overlay-btn">🔊 Tap to Enable Audio</button>
 
-    <a-scene embedded arjs="patternRatio:0.90" vr-mode-ui="enabled: false">
+    <a-scene embedded arjs="patternRatio: 0.90; trackingMethod: best;" vr-mode-ui="enabled: false">
       
       <a-assets>
-        <!-- Common attributes for all videos for mobile support -->
-        <video id="vid1" src="https://raw.githubusercontent.com/ajaykirandamera1998-rgb/WebAr/main/videos/video1.mp4" preload="auto" crossorigin="anonymous" loop playsinline muted></video>
-        <video id="vid2" src="https://raw.githubusercontent.com/ajaykirandamera1998-rgb/WebAr/main/videos/video2.mp4" preload="auto" crossorigin="anonymous" loop playsinline muted></video>
-        <video id="vid3" src="https://raw.githubusercontent.com/ajaykirandamera1998-rgb/WebAr/main/videos/video3.mp4" preload="auto" crossorigin="anonymous" loop playsinline muted></video>
-        <video id="vid4" src="https://raw.githubusercontent.com/ajaykirandamera1998-rgb/WebAr/main/videos/video4.mp4" preload="auto" crossorigin="anonymous" loop playsinline muted></video>
+        <!-- Single dynamic video element -->
+        <video 
+          id="main-video-asset" 
+          src="https://raw.githubusercontent.com/ajaykirandamera1998-rgb/WebAr/main/videos/video1.mp4" 
+          preload="auto" 
+          crossorigin="anonymous" 
+          loop 
+          playsinline 
+          webkit-playsinline 
+          muted>
+        </video>
       </a-assets>
 
-      <a-marker 
-        id="marker"
-        type="pattern" 
-        url="./marker.patt"
-        smooth="true"
-        smoothCount="10">
+      <a-marker id="marker" type="pattern" url="./marker.patt" smooth="true" smoothCount="5">
 
-        <!-- GLOBAL SCALE CONTAINER: Shrinks the whole layout -->
-        <a-entity id="layout-container" scale="0.8 0.8 0.8" rotation="-90 0 0">
+        <!-- Container elevated to z=0.05 to eliminate background clipping -->
+        <a-entity id="layout" scale="0.75 0.75 0.75" position="0 0.05 0" rotation="-90 0 0">
           
-          <!-- MAIN LAYOUT BACKGROUND (White Box) -->
-          <a-plane id="main-layout-bg" color="white" width="2" height="2.5" position="0 0 0">
-            
-            <!-- MAIN VIDEO PLAYER (Top half) -->
-            <a-video 
-              id="main-player" 
-              src="#vid1" 
-              width="1.8" 
-              height="1.0" 
-              position="0 0.6 0.01">
-            </a-video>
+          <!-- White Card Frame -->
+          <a-plane color="#FFFFFF" width="2.1" height="2.6" position="0 0 0"></a-plane>
 
-            <!-- SUB VIDEO LAYOUT (Bottom half) -->
-            <!-- Sub 1 -->
-            <a-video 
-              id="sub1"
-              class="sub-player clickable"
-              src="#vid2" 
-              width="0.55" 
-              height="0.7" 
-              position="-0.6 -0.6 0.01">
-            </a-video>
-            
-            <!-- Sub 2 -->
-            <a-video 
-              id="sub2"
-              class="sub-player clickable"
-              src="#vid3" 
-              width="0.55" 
-              height="0.7" 
-              position="0 -0.6 0.01">
-            </a-video>
-            
-            <!-- Sub 3 -->
-            <a-video 
-              id="sub3"
-              class="sub-player clickable"
-              src="#vid4" 
-              width="0.55" 
-              height="0.7" 
-              position="0.6 -0.6 0.01">
-            </a-video>
+          <!-- Main Player Plane (Elevated slightly to z=0.02 to avoid z-fighting) -->
+          <a-video 
+            id="main-player" 
+            src="#main-video-asset" 
+            width="1.9" 
+            height="1.1" 
+            position="0 0.65 0.02">
+          </a-video>
 
+          <!-- Sub Clickable Items (Using distinct video sources mapped on tap) -->
+          <a-plane 
+            class="sub-item clickable" 
+            data-src="https://raw.githubusercontent.com/ajaykirandamera1998-rgb/WebAr/main/videos/video2.mp4"
+            color="#111111" width="0.58" height="0.8" position="-0.62 -0.65 0.02">
+            <a-text value="VID 2" align="center" position="0 0 0.01" scale="0.8 0.8 0.8" color="#FFFFFF"></a-text>
           </a-plane>
+
+          <a-plane 
+            class="sub-item clickable" 
+            data-src="https://raw.githubusercontent.com/ajaykirandamera1998-rgb/WebAr/main/videos/video3.mp4"
+            color="#111111" width="0.58" height="0.8" position="0 -0.65 0.02">
+            <a-text value="VID 3" align="center" position="0 0 0.01" scale="0.8 0.8 0.8" color="#FFFFFF"></a-text>
+          </a-plane>
+
+          <a-plane 
+            class="sub-item clickable" 
+            data-src="https://raw.githubusercontent.com/ajaykirandamera1998-rgb/WebAr/main/videos/video4.mp4"
+            color="#111111" width="0.58" height="0.8" position="0.62 -0.65 0.02">
+            <a-text value="VID 4" align="center" position="0 0 0.01" scale="0.8 0.8 0.8" color="#FFFFFF"></a-text>
+          </a-plane>
+
         </a-entity>
 
       </a-marker>
-      
-      <!-- Enable cursor interaction -->
-      <a-entity camera cursor="rayOrigin: mouse" raycaster="objects: .clickable"></a-entity>
+
+      <!-- Raycaster enabled specifically for mobile touch -->
+      <a-entity camera cursor="fuse: false; rayOrigin: mouse" raycaster="objects: .clickable"></a-entity>
     </a-scene>
 
     <script>
+      const videoAsset = document.getElementById("main-video-asset");
       const mainPlayer = document.getElementById("main-player");
-      const subPlayers = document.querySelectorAll(".sub-player");
       const marker = document.getElementById("marker");
-      const playBtn = document.getElementById("play-btn");
+      const overlayBtn = document.getElementById("overlay-btn");
+      const subItems = document.querySelectorAll(".sub-item");
 
-      // List of all video asset IDs
-      const allVideos = ["vid1", "vid2", "vid3", "vid4"];
-
-      // FUNCTION: Toggle unmute overlay based on marker visibility
-      function toggleOverlay(show) {
-        if (show && allVideos.some(id => document.getElementById(id).muted)) {
-          playBtn.style.display = "block";
-        } else {
-          playBtn.style.display = "none";
-        }
-      }
-
-      // 1. Handle user click on screen to enable audio
-      playBtn.addEventListener("click", () => {
-        allVideos.forEach(id => {
-          const v = document.getElementById(id);
-          v.muted = false;
-          v.play();
-        });
-        playBtn.style.display = "none";
+      // 1. Audio Unmute Gesture
+      overlayBtn.addEventListener("click", () => {
+        videoAsset.muted = false;
+        videoAsset.play().catch(e => console.log(e));
+        overlayBtn.style.display = "none";
       });
 
-      // 2. Play current video combo (muted) when card is in view
+      // 2. Marker Found / Lost Event Logic
       marker.addEventListener("markerFound", () => {
-        document.getElementById(mainPlayer.getAttribute('src').substring(1)).play();
-        subPlayers.forEach(sub => document.getElementById(sub.getAttribute('src').substring(1)).play());
-        toggleOverlay(true);
+        videoAsset.play().catch(e => console.log(e));
+        if (videoAsset.muted) {
+          overlayBtn.style.display = "block";
+        }
       });
 
-      // 3. Pause all when card leaves view
       marker.addEventListener("markerLost", () => {
-        allVideos.forEach(id => document.getElementById(id).pause());
-        toggleOverlay(false);
+        videoAsset.pause();
+        overlayBtn.style.display = "none";
       });
 
-      // 4. INTERACTION: Swap videos on tap
-      subPlayers.forEach(sub => {
-        sub.addEventListener("click", function () {
-          // Get current sources
-          const currentMainVidSrc = mainPlayer.getAttribute('src');
-          const tappedSubVidSrc = this.getAttribute('src');
+      // 3. Reliable Video Source Swapping
+      subItems.forEach(item => {
+        item.addEventListener("click", function() {
+          const newSrc = this.getAttribute("data-src");
+          
+          // Pause current playback
+          videoAsset.pause();
 
-          // Pause existing main video to prevent overlapping audio/load
-          document.getElementById(currentMainVidSrc.substring(1)).pause();
+          // Swap source directly on HTML video element
+          videoAsset.src = newSrc;
+          videoAsset.load();
 
-          // Perform the swap
-          mainPlayer.setAttribute('src', tappedSubVidSrc);
-          this.setAttribute('src', currentMainVidSrc);
+          // Refresh WebGL texture material mapping
+          mainPlayer.components.material.material.map.needsUpdate = true;
 
-          // Play the new video combination
-          document.getElementById(tappedSubVidSrc.substring(1)).play();
-          document.getElementById(currentMainVidSrc.substring(1)).play();
+          // Play new video
+          videoAsset.play().catch(e => console.log(e));
         });
       });
     </script>
