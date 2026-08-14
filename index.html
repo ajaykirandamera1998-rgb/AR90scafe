@@ -17,14 +17,14 @@
         transform: translateX(-50%);
         z-index: 99999;
         padding: 14px 28px;
-        background: #EF2D5E;
-        color: white;
+        background: #00E5FF;
+        color: #000;
         border: none;
         border-radius: 30px;
         font-family: sans-serif;
         font-weight: bold;
         font-size: 15px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        box-shadow: 0 4px 15px rgba(0,229,255,0.4);
         cursor: pointer;
         display: none;
       }
@@ -32,7 +32,7 @@
   </head>
   <body style="margin: 0; overflow: hidden;">
 
-    <button id="play-btn">🔊 Tap for Sound</button>
+    <button id="play-btn">🔊 Tap to Enable Audio</button>
 
     <a-scene embedded arjs="patternRatio: 0.90; trackingMethod: best;" vr-mode-ui="enabled: false">
       
@@ -45,51 +45,86 @@
 
       <a-marker id="marker" type="pattern" url="./marker.patt" smooth="true" smoothCount="5">
 
-        <!-- Floating Layout Container (Scaled down & rotated flat over card) -->
+        <!-- Floating Layout Container -->
         <a-entity id="hologram-layout" scale="0.75 0.75 0.75" position="0 0.1 0" rotation="-90 0 0">
           
           <!-- MAIN VIDEO PLAYER (Top) -->
-          <a-video 
-            id="main-player" 
-            src="#vid1" 
-            width="1.9" 
-            height="1.1" 
-            position="0 0.65 0">
-          </a-video>
+          <a-entity position="0 0.65 0">
+            <!-- Wireframe Border Box -->
+            <a-entity 
+              geometry="primitive: box; width: 1.94; height: 1.14; depth: 0.01" 
+              material="wireframe: true; color: #00E5FF; wireframeLinewidth: 2"
+              position="0 0 -0.005">
+            </a-entity>
 
-          <!-- SUB VIDEO PLAYERS (Bottom Row - All 4 Playing) -->
-          <a-video 
-            id="sub1"
-            class="sub-player clickable"
-            src="#vid2" 
-            width="0.58" 
-            height="0.8" 
-            position="-0.62 -0.45 0">
-          </a-video>
+            <!-- Video Texture -->
+            <a-video 
+              id="main-player" 
+              src="#vid1" 
+              width="1.9" 
+              height="1.1" 
+              position="0 0 0">
+            </a-video>
+          </a-entity>
 
-          <a-video 
-            id="sub2"
-            class="sub-player clickable"
-            src="#vid3" 
-            width="0.58" 
-            height="0.8" 
-            position="0 -0.45 0">
-          </a-video>
+          <!-- SUB VIDEO PLAYERS (Bottom Row - All 4 Playing Demo) -->
+          
+          <!-- Sub 1 -->
+          <a-entity position="-0.62 -0.45 0">
+            <a-entity 
+              geometry="primitive: box; width: 0.61; height: 0.83; depth: 0.01" 
+              material="wireframe: true; color: #FFFFFF; wireframeLinewidth: 2"
+              position="0 0 -0.005">
+            </a-entity>
+            <a-video 
+              id="sub1"
+              class="sub-player clickable"
+              src="#vid2" 
+              width="0.58" 
+              height="0.8" 
+              position="0 0 0">
+            </a-video>
+          </a-entity>
 
-          <a-video 
-            id="sub3"
-            class="sub-player clickable"
-            src="#vid4" 
-            width="0.58" 
-            height="0.8" 
-            position="0.62 -0.45 0">
-          </a-video>
+          <!-- Sub 2 -->
+          <a-entity position="0 -0.45 0">
+            <a-entity 
+              geometry="primitive: box; width: 0.61; height: 0.83; depth: 0.01" 
+              material="wireframe: true; color: #FFFFFF; wireframeLinewidth: 2"
+              position="0 0 -0.005">
+            </a-entity>
+            <a-video 
+              id="sub2"
+              class="sub-player clickable"
+              src="#vid3" 
+              width="0.58" 
+              height="0.8" 
+              position="0 0 0">
+            </a-video>
+          </a-entity>
+
+          <!-- Sub 3 -->
+          <a-entity position="0.62 -0.45 0">
+            <a-entity 
+              geometry="primitive: box; width: 0.61; height: 0.83; depth: 0.01" 
+              material="wireframe: true; color: #FFFFFF; wireframeLinewidth: 2"
+              position="0 0 -0.005">
+            </a-entity>
+            <a-video 
+              id="sub3"
+              class="sub-player clickable"
+              src="#vid4" 
+              width="0.58" 
+              height="0.8" 
+              position="0 0 0">
+            </a-video>
+          </a-entity>
 
         </a-entity>
 
       </a-marker>
 
-      <!-- Raycaster enabled for touch interaction -->
+      <!-- Touch Raycaster -->
       <a-entity camera cursor="fuse: false; rayOrigin: mouse" raycaster="objects: .clickable"></a-entity>
     </a-scene>
 
@@ -101,7 +136,7 @@
 
       const videoIds = ["vid1", "vid2", "vid3", "vid4"];
 
-      // Unmute and play all sound on tap
+      // Audio activation gesture handler
       playBtn.addEventListener("click", () => {
         videoIds.forEach(id => {
           const v = document.getElementById(id);
@@ -111,20 +146,19 @@
         playBtn.style.display = "none";
       });
 
-      // Play all 4 videos when marker is scanned
+      // Play all 4 videos on marker tracking trigger
       marker.addEventListener("markerFound", () => {
         videoIds.forEach(id => {
           const v = document.getElementById(id);
           v.play().catch(e => console.log(e));
         });
         
-        // Show audio button if any video is muted
         if (document.getElementById("vid1").muted) {
           playBtn.style.display = "block";
         }
       });
 
-      // Pause all when marker is lost
+      // Pause playback when marker tracking is lost
       marker.addEventListener("markerLost", () => {
         videoIds.forEach(id => {
           document.getElementById(id).pause();
@@ -132,17 +166,16 @@
         playBtn.style.display = "none";
       });
 
-      // Interactive Video Swap on Tap
+      // Interactive Swap Handler
       subPlayers.forEach(sub => {
         sub.addEventListener("click", function() {
           const currentMainVidSrc = mainPlayer.getAttribute("src");
           const tappedSubVidSrc = this.getAttribute("src");
 
-          // Swap video targets
           mainPlayer.setAttribute("src", tappedSubVidSrc);
           this.setAttribute("src", currentMainVidSrc);
 
-          // Force material refresh on WebGL planes
+          // Refresh textures dynamically inside WebGL buffer
           mainPlayer.components.material.material.map.needsUpdate = true;
           this.components.material.material.map.needsUpdate = true;
         });
