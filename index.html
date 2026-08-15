@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MEMEVERSE WebAR - Minimal Stack</title>
+    <title>Brahmanandam Meme WebAR</title>
     
     <!-- A-Frame & AR.js Libraries -->
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
@@ -47,81 +47,62 @@
 
       <a-marker id="marker" type="pattern" url="./marker.patt" smooth="true" smoothCount="5">
 
-        <!-- MINIMAL STACK CONTAINER (Scaled down for tight viewport integration) -->
+        <!-- MINIMAL STACK CONTAINER -->
         <a-entity id="minimal-stack" scale="0.5 0.5 0.5" position="0 0.02 0" rotation="-90 0 0">
           
-          <!-- ================= 1. MAIN VIDEO PLAYER (TOP) ================= -->
-          <a-entity position="0 0.55 0">
-            <!-- Cyan Accent Hairline Border -->
-            <a-entity 
-              geometry="primitive: plane; width: 1.64; height: 0.94" 
-              material="color: #00E5FF; shader: flat" 
-              position="0 0 -0.002">
-            </a-entity>
+          <!-- 1. MAIN VIDEO PLAYER (Clean - No Border) -->
+          <a-video 
+            id="main-player" 
+            src="#vid1" 
+            width="1.6" 
+            height="0.9" 
+            position="0 0.55 0">
+          </a-video>
 
-            <!-- Main Active Video -->
-            <a-video 
-              id="main-player" 
-              src="#vid1" 
-              width="1.6" 
-              height="0.9" 
-              position="0 0 0">
-            </a-video>
-          </a-entity>
-
-          <!-- ================= 2. DIVIDER LINE ================= -->
+          <!-- 2. MIDDLE SEPARATION LINE (Cyan) -->
           <a-entity 
-            geometry="primitive: plane; width: 1.64; height: 0.01" 
+            geometry="primitive: plane; width: 1.6; height: 0.012" 
             material="color: #00E5FF; shader: flat" 
-            position="0 0.02 0">
+            position="0 0.04 0">
           </a-entity>
 
-          <!-- ================= 3. SUB THUMBNAIL SELECTOR STRIP (BOTTOM ROW) ================= -->
+          <!-- 3. SUB THUMBNAIL STRIP (Clean - No Borders) -->
           
           <!-- Sub Video 1 -->
-          <a-entity position="-0.55 -0.22 0">
-            <a-entity geometry="primitive: plane; width: 0.49; height: 0.31" material="color: #FFFFFF; shader: flat" position="0 0 -0.002"></a-entity>
-            <a-video 
-              id="sub1" 
-              class="sub-player clickable" 
-              src="#vid2" 
-              width="0.47" 
-              height="0.29" 
-              position="0 0 0">
-            </a-video>
-          </a-entity>
+          <a-video 
+            id="sub1" 
+            class="sub-player clickable" 
+            src="#vid2" 
+            width="0.47" 
+            height="0.29" 
+            position="-0.55 -0.2 0">
+          </a-video>
 
           <!-- Sub Video 2 -->
-          <a-entity position="0 -0.22 0">
-            <a-entity geometry="primitive: plane; width: 0.49; height: 0.31" material="color: #FFFFFF; shader: flat" position="0 0 -0.002"></a-entity>
-            <a-video 
-              id="sub2" 
-              class="sub-player clickable" 
-              src="#vid3" 
-              width="0.47" 
-              height="0.29" 
-              position="0 0 0">
-            </a-video>
-          </a-entity>
+          <a-video 
+            id="sub2" 
+            class="sub-player clickable" 
+            src="#vid3" 
+            width="0.47" 
+            height="0.29" 
+            position="0 -0.2 0">
+          </a-video>
 
           <!-- Sub Video 3 -->
-          <a-entity position="0.55 -0.22 0">
-            <a-entity geometry="primitive: plane; width: 0.49; height: 0.31" material="color: #FFFFFF; shader: flat" position="0 0 -0.002"></a-entity>
-            <a-video 
-              id="sub3" 
-              class="sub-player clickable" 
-              src="#vid4" 
-              width="0.47" 
-              height="0.29" 
-              position="0 0 0">
-            </a-video>
-          </a-entity>
+          <a-video 
+            id="sub3" 
+            class="sub-player clickable" 
+            src="#vid4" 
+            width="0.47" 
+            height="0.29" 
+            position="0.55 -0.2 0">
+          </a-video>
 
         </a-entity>
 
       </a-marker>
 
-      <!-- Cursor Raycaster for Touch Events -->
+      <!-- Raycaster for Mobile Touch -->
       <a-entity camera cursor="fuse: false; rayOrigin: mouse" raycaster="objects: .clickable"></a-entity>
     </a-scene>
 
@@ -133,7 +114,7 @@
 
       const videoIds = ["vid1", "vid2", "vid3", "vid4"];
 
-      // Handle audio unmute gesture
+      // Audio activation handler
       playBtn.addEventListener("click", () => {
         videoIds.forEach(id => {
           const v = document.getElementById(id);
@@ -143,7 +124,7 @@
         playBtn.style.display = "none";
       });
 
-      // Play all videos on marker detection
+      // Marker track trigger
       marker.addEventListener("markerFound", () => {
         videoIds.forEach(id => {
           document.getElementById(id).play().catch(e => console.log(e));
@@ -153,13 +134,13 @@
         }
       });
 
-      // Pause playback on marker loss
+      // Marker lost trigger
       marker.addEventListener("markerLost", () => {
         videoIds.forEach(id => document.getElementById(id).pause());
         playBtn.style.display = "none";
       });
 
-      // Swap Main and Sub video sources seamlessly on tap
+      // Swap Main and Sub video sources on tap
       subPlayers.forEach(sub => {
         sub.addEventListener("click", function() {
           const currentMainVidSrc = mainPlayer.getAttribute("src");
