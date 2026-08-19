@@ -11,12 +11,13 @@
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
 
     <style>
-      #play-btn {
+      /* Audio Unmute Banner */
+      #audio-banner {
         position: fixed;
-        bottom: 30px;
+        bottom: 20px;
         left: 50%;
         transform: translateX(-50%);
-        z-index: 9999;
+        z-index: 99999;
         padding: 14px 28px;
         background: #00E5FF;
         color: #000;
@@ -26,7 +27,7 @@
         font-weight: 800;
         font-size: 15px;
         letter-spacing: 0.5px;
-        box-shadow: 0 0 20px rgba(0, 229, 255, 0.6);
+        box-shadow: 0 0 20px rgba(0, 229, 255, 0.7);
         cursor: pointer;
         display: none;
       }
@@ -34,12 +35,12 @@
   </head>
   <body style="margin: 0; overflow: hidden; background-color: #000;">
 
-    <button id="play-btn">🔊 TAP TO UNMUTE</button>
+    <!-- Tap to Unmute Overlay -->
+    <button id="audio-banner" onclick="unlockAllAudio()">🔊 TAP TO UNMUTE AUDIO</button>
 
     <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false; patternRatio: 0.90; trackingMethod: best;" vr-mode-ui="enabled: false">
 
       <a-assets timeout="10000">
-        <!-- Canvas Asset -->
         <canvas id="icon-canvas" width="128" height="128"></canvas>
 
         <video id="vid-jathirathnalu" src="videos/Jathirathnalu.mp4" preload="auto" crossorigin="anonymous" loop playsinline webkit-playsinline muted></video>
@@ -101,13 +102,14 @@
         { markerId: "marker-video", videoId: "vid-video" }
       ];
 
-      const playBtn = document.getElementById("play-btn");
+      const audioBanner = document.getElementById("audio-banner");
       const canvas = document.getElementById("icon-canvas");
       const ctx = canvas.getContext("2d");
       
       let activeVideo = null;
-      let isGlobalUnmuted = false;
+      let isUnmuted = false;
 
+      // Draw Speaker Icon Texture
       function drawSpeakerIcon(muted) {
         ctx.clearRect(0, 0, 128, 128);
         
@@ -137,8 +139,9 @@
         drawSpeakerIcon(true);
       });
 
-      function handleUserUnmuteGesture() {
-        isGlobalUnmuted = true;
+      // Synchronous User Interaction Audio Unlocking
+      function unlockAllAudio() {
+        isUnmuted = true;
 
         targets.forEach(t => {
           const v = document.getElementById(t.videoId);
@@ -148,22 +151,15 @@
 
         if (activeVideo) {
           activeVideo.muted = false;
-          activeVideo.play().then(() => {
-            playBtn.style.display = "none";
-            drawSpeakerIcon(false);
-          }).catch(err => console.log("Playback error:", err));
-        } else {
-          playBtn.style.display = "none";
-          drawSpeakerIcon(false);
+          activeVideo.volume = 1.0;
+          activeVideo.play();
         }
+
+        audioBanner.style.display = "none";
+        drawSpeakerIcon(false);
       }
 
-      playBtn.addEventListener("click", handleUserUnmuteGesture);
-
-      document.querySelectorAll(".speaker-icon").forEach(iconPlane => {
-        iconPlane.addEventListener("click", handleUserUnmuteGesture);
-      });
-
+      // Marker Event Listeners
       targets.forEach(t => {
         const markerEl = document.getElementById(t.markerId);
         const videoEl = document.getElementById(t.videoId);
@@ -171,24 +167,25 @@
         markerEl.addEventListener("markerFound", () => {
           activeVideo = videoEl;
 
-          if (isGlobalUnmuted) {
+          if (isUnmuted) {
             videoEl.muted = false;
-            playBtn.style.display = "none";
+            videoEl.volume = 1.0;
+            audioBanner.style.display = "none";
             drawSpeakerIcon(false);
           } else {
             videoEl.muted = true;
-            playBtn.style.display = "block";
+            audioBanner.style.display = "block";
             drawSpeakerIcon(true);
           }
 
-          videoEl.play().catch(e => console.log(e));
+          videoEl.play().catch(e => console.log("Play error:", e));
         });
 
         markerEl.addEventListener("markerLost", () => {
           videoEl.pause();
           videoEl.currentTime = 0;
           if (activeVideo === videoEl) activeVideo = null;
-          playBtn.style.display = "none";
+          audioBanner.style.display = "none";
         });
       });
     </script>
