@@ -3,19 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Brahmanandam Meme WebAR</title>
-    
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>MEMEVERSE WebAR - Multi-Target Engine</title>
+
     <!-- A-Frame & AR.js Libraries -->
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
 
     <style>
+      /* Audio Unmute Overlay Button */
       #play-btn {
         position: fixed;
-        bottom: 25px;
+        bottom: 30px;
         left: 50%;
         transform: translateX(-50%);
-        z-index: 99999;
+        z-index: 9999;
         padding: 12px 26px;
         background: #00E5FF;
         color: #000;
@@ -33,125 +35,127 @@
   </head>
   <body style="margin: 0; overflow: hidden; background-color: #000;">
 
-    <!-- Audio Unmute Trigger -->
-    <button id="play-btn">🔊 TAP TO UNMUTE AUDIO</button>
+    <!-- Tap to Unmute Button -->
+    <button id="play-btn">🔊 TAP FOR AUDIO</button>
 
-    <a-scene embedded arjs="patternRatio: 0.90; trackingMethod: best;" vr-mode-ui="enabled: false">
-      
-      <a-assets>
-        <video id="vid1" src="https://raw.githubusercontent.com/ajaykirandamera1998-rgb/WebAr/main/videos/video1.mp4" preload="auto" crossorigin="anonymous" loop playsinline webkit-playsinline muted></video>
-        <video id="vid2" src="https://raw.githubusercontent.com/ajaykirandamera1998-rgb/WebAr/main/videos/video2.mp4" preload="auto" crossorigin="anonymous" loop playsinline webkit-playsinline muted></video>
-        <video id="vid3" src="https://raw.githubusercontent.com/ajaykirandamera1998-rgb/WebAr/main/videos/video3.mp4" preload="auto" crossorigin="anonymous" loop playsinline webkit-playsinline muted></video>
-        <video id="vid4" src="https://raw.githubusercontent.com/ajaykirandamera1998-rgb/WebAr/main/videos/video4.mp4" preload="auto" crossorigin="anonymous" loop playsinline webkit-playsinline muted></video>
+    <a-scene embedded arjs="patternRatio:0.90; trackingMethod: best;" vr-mode-ui="enabled: false">
+
+      <a-assets timeout="10000">
+        <video id="vid-jathirathnalu" src="videos/Jathirathnalu.mp4" preload="auto" crossorigin="anonymous" loop playsinline webkit-playsinline muted></video>
+        <video id="vid-meme" src="videos/Meme.mp4" preload="auto" crossorigin="anonymous" loop playsinline webkit-playsinline muted></video>
+        <video id="vid-sapthagiri" src="videos/Sapthagiri.mp4" preload="auto" crossorigin="anonymous" loop playsinline webkit-playsinline muted></video>
+        <video id="vid-vm" src="videos/VM.mp4" preload="auto" crossorigin="anonymous" loop playsinline webkit-playsinline muted></video>
+        <video id="vid-video" src="videos/video.mp4" preload="auto" crossorigin="anonymous" loop playsinline webkit-playsinline muted></video>
       </a-assets>
 
-      <a-marker id="marker" type="pattern" url="./marker.patt" smooth="true" smoothCount="5">
-
-        <!-- MINIMAL STACK CONTAINER -->
-        <a-entity id="minimal-stack" scale="0.5 0.5 0.5" position="0 0.02 0" rotation="-90 0 0">
-          
-          <!-- 1. MAIN VIDEO PLAYER (Clean - No Border) -->
-          <a-video 
-            id="main-player" 
-            src="#vid1" 
-            width="1.6" 
-            height="0.9" 
-            position="0 0.55 0">
-          </a-video>
-
-          <!-- 2. MIDDLE SEPARATION LINE (Cyan) -->
-          <a-entity 
-            geometry="primitive: plane; width: 1.6; height: 0.012" 
-            material="color: #00E5FF; shader: flat" 
-            position="0 0.04 0">
-          </a-entity>
-
-          <!-- 3. SUB THUMBNAIL STRIP (Clean - No Borders) -->
-          
-          <!-- Sub Video 1 -->
-          <a-video 
-            id="sub1" 
-            class="sub-player clickable" 
-            src="#vid2" 
-            width="0.47" 
-            height="0.29" 
-            position="-0.55 -0.2 0">
-          </a-video>
-
-          <!-- Sub Video 2 -->
-          <a-video 
-            id="sub2" 
-            class="sub-player clickable" 
-            src="#vid3" 
-            width="0.47" 
-            height="0.29" 
-            position="0 -0.2 0">
-          </a-video>
-
-          <!-- Sub Video 3 -->
-          <a-video 
-            id="sub3" 
-            class="sub-player clickable" 
-            src="#vid4" 
-            width="0.47" 
-            height="0.29" 
-            position="0.55 -0.2 0">
-          </a-video>
-
-        </a-entity>
-
+      <!-- 1. Jathirathnalu Target -->
+      <a-marker 
+        id="marker-jathirathnalu"
+        type="pattern" 
+        url="./Markers/Jathirathnalu marker.patt"
+        smooth="true"
+        smoothCount="10"
+        smoothTolerance="0.01"
+        smoothThreshold="5">
+        <a-video src="#vid-jathirathnalu" width="1.0" height="0.56" position="0 0.05 0" rotation="-90 0 0"></a-video>
       </a-marker>
 
-      <!-- Raycaster for Mobile Touch -->
-      <a-entity camera cursor="fuse: false; rayOrigin: mouse" raycaster="objects: .clickable"></a-entity>
+      <!-- 2. Meme Target -->
+      <a-marker 
+        id="marker-meme"
+        type="pattern" 
+        url="./Markers/Meme marker.patt"
+        smooth="true"
+        smoothCount="10"
+        smoothTolerance="0.01"
+        smoothThreshold="5">
+        <a-video src="#vid-meme" width="1.0" height="0.56" position="0 0.05 0" rotation="-90 0 0"></a-video>
+      </a-marker>
+
+      <!-- 3. Sapthagiri Target -->
+      <a-marker 
+        id="marker-sapthagiri"
+        type="pattern" 
+        url="./Markers/Sapthgiri marker.patt"
+        smooth="true"
+        smoothCount="10"
+        smoothTolerance="0.01"
+        smoothThreshold="5">
+        <a-video src="#vid-sapthagiri" width="1.0" height="0.56" position="0 0.05 0" rotation="-90 0 0"></a-video>
+      </a-marker>
+
+      <!-- 4. VM Target -->
+      <a-marker 
+        id="marker-vm"
+        type="pattern" 
+        url="./Markers/VM marker.patt"
+        smooth="true"
+        smoothCount="10"
+        smoothTolerance="0.01"
+        smoothThreshold="5">
+        <a-video src="#vid-vm" width="1.0" height="0.56" position="0 0.05 0" rotation="-90 0 0"></a-video>
+      </a-marker>
+
+      <!-- 5. Video Target -->
+      <a-marker 
+        id="marker-video"
+        type="pattern" 
+        url="./Markers/Video marker.patt"
+        smooth="true"
+        smoothCount="10"
+        smoothTolerance="0.01"
+        smoothThreshold="5">
+        <a-video src="#vid-video" width="1.0" height="0.56" position="0 0.05 0" rotation="-90 0 0"></a-video>
+      </a-marker>
+
+      <a-entity camera></a-entity>
     </a-scene>
 
     <script>
-      const mainPlayer = document.getElementById("main-player");
-      const subPlayers = document.querySelectorAll(".sub-player");
-      const marker = document.getElementById("marker");
+      const targets = [
+        { markerId: "marker-jathirathnalu", videoId: "vid-jathirathnalu" },
+        { markerId: "marker-meme", videoId: "vid-meme" },
+        { markerId: "marker-sapthagiri", videoId: "vid-sapthagiri" },
+        { markerId: "marker-vm", videoId: "vid-vm" },
+        { markerId: "marker-video", videoId: "vid-video" }
+      ];
+
       const playBtn = document.getElementById("play-btn");
+      let activeVideo = null;
 
-      const videoIds = ["vid1", "vid2", "vid3", "vid4"];
-
-      // Audio activation handler
+      // Global Unmute Trigger
       playBtn.addEventListener("click", () => {
-        videoIds.forEach(id => {
-          const v = document.getElementById(id);
+        targets.forEach(t => {
+          const v = document.getElementById(t.videoId);
           v.muted = false;
-          v.play().catch(e => console.log(e));
         });
-        playBtn.style.display = "none";
-      });
-
-      // Marker track trigger
-      marker.addEventListener("markerFound", () => {
-        videoIds.forEach(id => {
-          document.getElementById(id).play().catch(e => console.log(e));
-        });
-        if (document.getElementById("vid1").muted) {
-          playBtn.style.display = "block";
+        if (activeVideo) {
+          activeVideo.play().catch(e => console.log(e));
         }
-      });
-
-      // Marker lost trigger
-      marker.addEventListener("markerLost", () => {
-        videoIds.forEach(id => document.getElementById(id).pause());
         playBtn.style.display = "none";
       });
 
-      // Swap Main and Sub video sources on tap
-      subPlayers.forEach(sub => {
-        sub.addEventListener("click", function() {
-          const currentMainVidSrc = mainPlayer.getAttribute("src");
-          const tappedSubVidSrc = this.getAttribute("src");
+      // Bind tracking events dynamically to each marker
+      targets.forEach(t => {
+        const markerEl = document.getElementById(t.markerId);
+        const videoEl = document.getElementById(t.videoId);
 
-          mainPlayer.setAttribute("src", tappedSubVidSrc);
-          this.setAttribute("src", currentMainVidSrc);
+        markerEl.addEventListener("markerFound", () => {
+          activeVideo = videoEl;
+          videoEl.play().catch(e => console.log(e));
 
-          // Force WebGL map texture refresh
-          mainPlayer.components.material.material.map.needsUpdate = true;
-          this.components.material.material.map.needsUpdate = true;
+          if (videoEl.muted) {
+            playBtn.style.display = "block";
+          }
+        });
+
+        markerEl.addEventListener("markerLost", () => {
+          videoEl.pause();
+          videoEl.currentTime = 0;
+          if (activeVideo === videoEl) {
+            activeVideo = null;
+          }
+          playBtn.style.display = "none";
         });
       });
     </script>
