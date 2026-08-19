@@ -11,7 +11,6 @@
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
 
     <style>
-      /* Audio Unmute Overlay Button */
       #play-btn {
         position: fixed;
         bottom: 30px;
@@ -35,12 +34,14 @@
   </head>
   <body style="margin: 0; overflow: hidden; background-color: #000;">
 
-    <!-- Tap to Unmute Button -->
     <button id="play-btn">🔊 TAP TO UNMUTE</button>
 
-    <a-scene embedded arjs="patternRatio:0.90; trackingMethod: best;" vr-mode-ui="enabled: false">
+    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false; patternRatio: 0.90; trackingMethod: best;" vr-mode-ui="enabled: false">
 
       <a-assets timeout="10000">
+        <!-- Canvas Asset -->
+        <canvas id="icon-canvas" width="128" height="128"></canvas>
+
         <video id="vid-jathirathnalu" src="videos/Jathirathnalu.mp4" preload="auto" crossorigin="anonymous" loop playsinline webkit-playsinline muted></video>
         <video id="vid-meme" src="videos/Meme.mp4" preload="auto" crossorigin="anonymous" loop playsinline webkit-playsinline muted></video>
         <video id="vid-sapthagiri" src="videos/Sapthagiri.mp4" preload="auto" crossorigin="anonymous" loop playsinline webkit-playsinline muted></video>
@@ -91,9 +92,6 @@
       <a-entity camera cursor="fuse: false; rayOrigin: mouse" raycaster="objects: .clickable"></a-entity>
     </a-scene>
 
-    <!-- Canvas Texture for Dynamic Speaker Icon -->
-    <canvas id="icon-canvas" width="128" height="128" style="display: none;"></canvas>
-
     <script>
       const targets = [
         { markerId: "marker-jathirathnalu", videoId: "vid-jathirathnalu" },
@@ -110,7 +108,6 @@
       let activeVideo = null;
       let isGlobalUnmuted = false;
 
-      // Draw Speaker Icon Texture
       function drawSpeakerIcon(muted) {
         ctx.clearRect(0, 0, 128, 128);
         
@@ -129,15 +126,17 @@
         ctx.fillText(muted ? "🔇" : "🔊", 64, 66);
 
         document.querySelectorAll(".speaker-icon").forEach(el => {
-          if (el.components && el.components.material && el.components.material.material.map) {
-            el.components.material.material.map.needsUpdate = true;
+          const mesh = el.getObject3D('mesh');
+          if (mesh && mesh.material && mesh.material.map) {
+            mesh.material.map.needsUpdate = true;
           }
         });
       }
 
-      drawSpeakerIcon(true);
+      window.addEventListener("load", () => {
+        drawSpeakerIcon(true);
+      });
 
-      // Force-unmute function executing inside direct click handler
       function handleUserUnmuteGesture() {
         isGlobalUnmuted = true;
 
@@ -159,22 +158,12 @@
         }
       }
 
-      // Direct Event Bindings
       playBtn.addEventListener("click", handleUserUnmuteGesture);
-      
-      // Fallback: Tapping anywhere on screen unmutes if button was active
-      window.addEventListener("touchstart", function unlockAudio() {
-        if (!isGlobalUnmuted) {
-          handleUserUnmuteGesture();
-          window.removeEventListener("touchstart", unlockAudio);
-        }
-      }, { once: true });
 
       document.querySelectorAll(".speaker-icon").forEach(iconPlane => {
         iconPlane.addEventListener("click", handleUserUnmuteGesture);
       });
 
-      // Marker Tracking
       targets.forEach(t => {
         const markerEl = document.getElementById(t.markerId);
         const videoEl = document.getElementById(t.videoId);
