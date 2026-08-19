@@ -49,67 +49,50 @@
       </a-assets>
 
       <!-- 1. Jathirathnalu Target -->
-      <a-marker 
-        id="marker-jathirathnalu"
-        type="pattern" 
-        url="./Markers/Jathirathnalu marker.patt"
-        smooth="true"
-        smoothCount="10"
-        smoothTolerance="0.01"
-        smoothThreshold="5">
-        <a-video src="#vid-jathirathnalu" width="1.0" height="0.56" position="0 0.05 0" rotation="-90 0 0"></a-video>
+      <a-marker id="marker-jathirathnalu" type="pattern" url="./Markers/Jathirathnalu marker.patt" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
+        <a-entity position="0 0.05 0" rotation="-90 0 0">
+          <a-video src="#vid-jathirathnalu" width="1.0" height="0.56" position="0 0 0"></a-video>
+          <a-plane class="speaker-icon clickable" width="0.12" height="0.12" position="0.4 -0.2 0.01" material="transparent: true; opacity: 0.9; src: #icon-canvas"></a-plane>
+        </a-entity>
       </a-marker>
 
       <!-- 2. Meme Target -->
-      <a-marker 
-        id="marker-meme"
-        type="pattern" 
-        url="./Markers/Meme marker.patt"
-        smooth="true"
-        smoothCount="10"
-        smoothTolerance="0.01"
-        smoothThreshold="5">
-        <a-video src="#vid-meme" width="1.0" height="0.56" position="0 0.05 0" rotation="-90 0 0"></a-video>
+      <a-marker id="marker-meme" type="pattern" url="./Markers/Meme marker.patt" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
+        <a-entity position="0 0.05 0" rotation="-90 0 0">
+          <a-video src="#vid-meme" width="1.0" height="0.56" position="0 0 0"></a-video>
+          <a-plane class="speaker-icon clickable" width="0.12" height="0.12" position="0.4 -0.2 0.01" material="transparent: true; opacity: 0.9; src: #icon-canvas"></a-plane>
+        </a-entity>
       </a-marker>
 
       <!-- 3. Sapthagiri Target -->
-      <a-marker 
-        id="marker-sapthagiri"
-        type="pattern" 
-        url="./Markers/Sapthgiri marker.patt"
-        smooth="true"
-        smoothCount="10"
-        smoothTolerance="0.01"
-        smoothThreshold="5">
-        <a-video src="#vid-sapthagiri" width="1.0" height="0.56" position="0 0.05 0" rotation="-90 0 0"></a-video>
+      <a-marker id="marker-sapthagiri" type="pattern" url="./Markers/Sapthgiri marker.patt" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
+        <a-entity position="0 0.05 0" rotation="-90 0 0">
+          <a-video src="#vid-sapthagiri" width="1.0" height="0.56" position="0 0 0"></a-video>
+          <a-plane class="speaker-icon clickable" width="0.12" height="0.12" position="0.4 -0.2 0.01" material="transparent: true; opacity: 0.9; src: #icon-canvas"></a-plane>
+        </a-entity>
       </a-marker>
 
       <!-- 4. VM Target -->
-      <a-marker 
-        id="marker-vm"
-        type="pattern" 
-        url="./Markers/VM marker.patt"
-        smooth="true"
-        smoothCount="10"
-        smoothTolerance="0.01"
-        smoothThreshold="5">
-        <a-video src="#vid-vm" width="1.0" height="0.56" position="0 0.05 0" rotation="-90 0 0"></a-video>
+      <a-marker id="marker-vm" type="pattern" url="./Markers/VM marker.patt" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
+        <a-entity position="0 0.05 0" rotation="-90 0 0">
+          <a-video src="#vid-vm" width="1.0" height="0.56" position="0 0 0"></a-video>
+          <a-plane class="speaker-icon clickable" width="0.12" height="0.12" position="0.4 -0.2 0.01" material="transparent: true; opacity: 0.9; src: #icon-canvas"></a-plane>
+        </a-entity>
       </a-marker>
 
       <!-- 5. Video Target -->
-      <a-marker 
-        id="marker-video"
-        type="pattern" 
-        url="./Markers/Video marker.patt"
-        smooth="true"
-        smoothCount="10"
-        smoothTolerance="0.01"
-        smoothThreshold="5">
-        <a-video src="#vid-video" width="1.0" height="0.56" position="0 0.05 0" rotation="-90 0 0"></a-video>
+      <a-marker id="marker-video" type="pattern" url="./Markers/Video marker.patt" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
+        <a-entity position="0 0.05 0" rotation="-90 0 0">
+          <a-video src="#vid-video" width="1.0" height="0.56" position="0 0 0"></a-video>
+          <a-plane class="speaker-icon clickable" width="0.12" height="0.12" position="0.4 -0.2 0.01" material="transparent: true; opacity: 0.9; src: #icon-canvas"></a-plane>
+        </a-entity>
       </a-marker>
 
-      <a-entity camera></a-entity>
+      <a-entity camera cursor="fuse: false; rayOrigin: mouse" raycaster="objects: .clickable"></a-entity>
     </a-scene>
+
+    <!-- Hidden Canvas to Render Dynamic Speaker Badge -->
+    <canvas id="icon-canvas" width="128" height="128" style="display: none;"></canvas>
 
     <script>
       const targets = [
@@ -121,21 +104,67 @@
       ];
 
       const playBtn = document.getElementById("play-btn");
+      const canvas = document.getElementById("icon-canvas");
+      const ctx = canvas.getContext("2d");
       let activeVideo = null;
 
-      // Global Unmute Trigger
-      playBtn.addEventListener("click", () => {
+      // Draw Dynamic Speaker Texture
+      function drawSpeakerIcon(isMuted) {
+        ctx.clearRect(0, 0, 128, 128);
+        
+        // Dark circular pill background
+        ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
+        ctx.beginPath();
+        ctx.arc(64, 64, 56, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Neon border ring
+        ctx.strokeStyle = "#00E5FF";
+        ctx.lineWidth = 6;
+        ctx.stroke();
+
+        // Icon text
+        ctx.font = "52px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(isMuted ? "🔇" : "🔊", 64, 66);
+
+        // Refresh A-Frame plane materials
+        document.querySelectorAll(".speaker-icon").forEach(el => {
+          if (el.components.material && el.components.material.material.map) {
+            el.components.material.material.map.needsUpdate = true;
+          }
+        });
+      }
+
+      // Initial Draw (Muted state)
+      drawSpeakerIcon(true);
+
+      function toggleAudio() {
         targets.forEach(t => {
           const v = document.getElementById(t.videoId);
-          v.muted = false;
+          v.muted = !v.muted;
         });
-        if (activeVideo) {
-          activeVideo.play().catch(e => console.log(e));
+
+        const isCurrentlyMuted = activeVideo ? activeVideo.muted : true;
+        drawSpeakerIcon(isCurrentlyMuted);
+
+        if (!isCurrentlyMuted) {
+          playBtn.style.display = "none";
+          if (activeVideo) activeVideo.play().catch(e => console.log(e));
+        } else {
+          playBtn.style.display = "block";
         }
-        playBtn.style.display = "none";
+      }
+
+      // Event Listeners for Unmute Controls
+      playBtn.addEventListener("click", toggleAudio);
+
+      document.querySelectorAll(".speaker-icon").forEach(iconPlane => {
+        iconPlane.addEventListener("click", toggleAudio);
       });
 
-      // Bind tracking events dynamically to each marker
+      // Bind Marker Triggers
       targets.forEach(t => {
         const markerEl = document.getElementById(t.markerId);
         const videoEl = document.getElementById(t.videoId);
@@ -143,6 +172,7 @@
         markerEl.addEventListener("markerFound", () => {
           activeVideo = videoEl;
           videoEl.play().catch(e => console.log(e));
+          drawSpeakerIcon(videoEl.muted);
 
           if (videoEl.muted) {
             playBtn.style.display = "block";
@@ -152,9 +182,7 @@
         markerEl.addEventListener("markerLost", () => {
           videoEl.pause();
           videoEl.currentTime = 0;
-          if (activeVideo === videoEl) {
-            activeVideo = null;
-          }
+          if (activeVideo === videoEl) activeVideo = null;
           playBtn.style.display = "none";
         });
       });
