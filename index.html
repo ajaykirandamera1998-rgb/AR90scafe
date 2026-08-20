@@ -53,7 +53,7 @@
       <!-- 1. Jathirathnalu Target -->
       <a-marker id="marker-jathirathnalu" type="pattern" url="./Markers/Jathirathnalu marker.patt" smooth="true" smoothCount="10">
         <a-entity position="0 0.05 0" rotation="-90 0 0">
-          <a-video src="#vid-jathirathnalu" width="0.7" height="0.393" position="0 0 0"></a-video>
+          <a-video class="clickable" src="#vid-jathirathnalu" width="0.7" height="0.393" position="0 0 0"></a-video>
           <a-plane class="speaker-icon clickable" width="0.1" height="0.1" position="0.28 -0.14 0.01" material="transparent: true; opacity: 0.95; src: #icon-canvas"></a-plane>
         </a-entity>
       </a-marker>
@@ -61,7 +61,7 @@
       <!-- 2. Meme Target -->
       <a-marker id="marker-meme" type="pattern" url="./Markers/Meme marker.patt" smooth="true" smoothCount="10">
         <a-entity position="0 0.05 0" rotation="-90 0 0">
-          <a-video src="#vid-meme" width="0.7" height="0.393" position="0 0 0"></a-video>
+          <a-video class="clickable" src="#vid-meme" width="0.7" height="0.393" position="0 0 0"></a-video>
           <a-plane class="speaker-icon clickable" width="0.1" height="0.1" position="0.28 -0.14 0.01" material="transparent: true; opacity: 0.95; src: #icon-canvas"></a-plane>
         </a-entity>
       </a-marker>
@@ -69,7 +69,7 @@
       <!-- 3. Sapthagiri Target -->
       <a-marker id="marker-sapthagiri" type="pattern" url="./Markers/Sapthgiri marker.patt" smooth="true" smoothCount="10">
         <a-entity position="0 0.05 0" rotation="-90 0 0">
-          <a-video src="#vid-sapthagiri" width="0.7" height="0.393" position="0 0 0"></a-video>
+          <a-video class="clickable" src="#vid-sapthagiri" width="0.7" height="0.393" position="0 0 0"></a-video>
           <a-plane class="speaker-icon clickable" width="0.1" height="0.1" position="0.28 -0.14 0.01" material="transparent: true; opacity: 0.95; src: #icon-canvas"></a-plane>
         </a-entity>
       </a-marker>
@@ -77,7 +77,7 @@
       <!-- 4. VM Target -->
       <a-marker id="marker-vm" type="pattern" url="./Markers/VM marker.patt" smooth="true" smoothCount="10">
         <a-entity position="0 0.05 0" rotation="-90 0 0">
-          <a-video src="#vid-vm" width="0.7" height="0.393" position="0 0 0"></a-video>
+          <a-video class="clickable" src="#vid-vm" width="0.7" height="0.393" position="0 0 0"></a-video>
           <a-plane class="speaker-icon clickable" width="0.1" height="0.1" position="0.28 -0.14 0.01" material="transparent: true; opacity: 0.95; src: #icon-canvas"></a-plane>
         </a-entity>
       </a-marker>
@@ -85,7 +85,7 @@
       <!-- 5. Video Target -->
       <a-marker id="marker-video" type="pattern" url="./Markers/Video marker.patt" smooth="true" smoothCount="10">
         <a-entity position="0 0.05 0" rotation="-90 0 0">
-          <a-video src="#vid-video" width="0.7" height="0.393" position="0 0 0"></a-video>
+          <a-video class="clickable" src="#vid-video" width="0.7" height="0.393" position="0 0 0"></a-video>
           <a-plane class="speaker-icon clickable" width="0.1" height="0.1" position="0.28 -0.14 0.01" material="transparent: true; opacity: 0.95; src: #icon-canvas"></a-plane>
         </a-entity>
       </a-marker>
@@ -105,14 +105,14 @@
       const audioBanner = document.getElementById("audio-banner");
       const canvas = document.getElementById("icon-canvas");
       const ctx = canvas.getContext("2d");
-      
+
       let activeVideo = null;
       let isUnmuted = false;
 
       // Draw Speaker Icon Texture
       function drawSpeakerIcon(muted) {
         ctx.clearRect(0, 0, 128, 128);
-        
+
         ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
         ctx.beginPath();
         ctx.arc(64, 64, 54, 0, Math.PI * 2);
@@ -140,6 +140,9 @@
       });
 
       // Synchronous User Interaction Audio Unlocking
+      // IMPORTANT: this must always be called directly from a user gesture
+      // (click/tap event), never from inside a promise/timeout/marker callback,
+      // or mobile browsers will block the unmute.
       function unlockAllAudio() {
         isUnmuted = true;
 
@@ -158,6 +161,18 @@
         audioBanner.style.display = "none";
         drawSpeakerIcon(false);
       }
+
+      // Wire up clicks/taps on the speaker icon AND the video plane itself.
+      // These fire once A-Frame has created the entities, and route through
+      // the same unlockAllAudio() function used by the banner button, so the
+      // click event counts as the required user gesture.
+      function bindClickableAudioUnlock() {
+        document.querySelectorAll(".speaker-icon, a-video.clickable").forEach(el => {
+          el.addEventListener("click", unlockAllAudio);
+        });
+      }
+
+      document.querySelector("a-scene").addEventListener("loaded", bindClickableAudioUnlock);
 
       // Marker Event Listeners
       targets.forEach(t => {
