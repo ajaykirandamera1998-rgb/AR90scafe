@@ -11,7 +11,6 @@
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
 
     <style>
-      /* Fixed Floating Screen Audio Button */
       #audio-toggle-btn {
         position: fixed;
         bottom: 24px;
@@ -49,12 +48,12 @@
   </head>
   <body style="margin: 0; overflow: hidden; background-color: #000;">
 
-    <!-- Fixed On-Screen Audio Control Button -->
     <button id="audio-toggle-btn" onclick="toggleScreenAudio()">
       <span id="audio-icon">🔇</span>
       <span id="audio-label">TAP TO UNMUTE</span>
     </button>
 
+    <!-- Higher smoothTolerance parameters for stable tracking -->
     <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false; patternRatio: 0.90; trackingMethod: best;" vr-mode-ui="enabled: false">
 
       <a-assets timeout="10000">
@@ -66,35 +65,35 @@
       </a-assets>
 
       <!-- 1. Jathirathnalu Target -->
-      <a-marker id="marker-jathirathnalu" type="pattern" url="./Markers/Jathirathnalu marker.patt" smooth="true" smoothCount="10">
+      <a-marker id="marker-jathirathnalu" type="pattern" url="./Markers/Jathirathnalu marker.patt" smooth="true" smoothCount="15" smoothTolerance="0.05" smoothThreshold="5">
         <a-entity position="0 0.05 0" rotation="-90 0 0">
           <a-video src="#vid-jathirathnalu" width="0.7" height="0.393" position="0 0 0"></a-video>
         </a-entity>
       </a-marker>
 
       <!-- 2. Meme Target -->
-      <a-marker id="marker-meme" type="pattern" url="./Markers/Meme marker.patt" smooth="true" smoothCount="10">
+      <a-marker id="marker-meme" type="pattern" url="./Markers/Meme marker.patt" smooth="true" smoothCount="15" smoothTolerance="0.05" smoothThreshold="5">
         <a-entity position="0 0.05 0" rotation="-90 0 0">
           <a-video src="#vid-meme" width="0.7" height="0.393" position="0 0 0"></a-video>
         </a-entity>
       </a-marker>
 
       <!-- 3. Sapthagiri Target -->
-      <a-marker id="marker-sapthagiri" type="pattern" url="./Markers/Sapthgiri marker.patt" smooth="true" smoothCount="10">
+      <a-marker id="marker-sapthagiri" type="pattern" url="./Markers/Sapthgiri marker.patt" smooth="true" smoothCount="15" smoothTolerance="0.05" smoothThreshold="5">
         <a-entity position="0 0.05 0" rotation="-90 0 0">
           <a-video src="#vid-sapthagiri" width="0.7" height="0.393" position="0 0 0"></a-video>
         </a-entity>
       </a-marker>
 
       <!-- 4. VM Target -->
-      <a-marker id="marker-vm" type="pattern" url="./Markers/VM marker.patt" smooth="true" smoothCount="10">
+      <a-marker id="marker-vm" type="pattern" url="./Markers/VM marker.patt" smooth="true" smoothCount="15" smoothTolerance="0.05" smoothThreshold="5">
         <a-entity position="0 0.05 0" rotation="-90 0 0">
           <a-video src="#vid-vm" width="0.7" height="0.393" position="0 0 0"></a-video>
         </a-entity>
       </a-marker>
 
       <!-- 5. Video Target -->
-      <a-marker id="marker-video" type="pattern" url="./Markers/Video marker.patt" smooth="true" smoothCount="10">
+      <a-marker id="marker-video" type="pattern" url="./Markers/Video marker.patt" smooth="true" smoothCount="15" smoothTolerance="0.05" smoothThreshold="5">
         <a-entity position="0 0.05 0" rotation="-90 0 0">
           <a-video src="#vid-video" width="0.7" height="0.393" position="0 0 0"></a-video>
         </a-entity>
@@ -118,8 +117,8 @@
 
       let activeVideo = null;
       let isGlobalUnmuted = false;
+      const loseTimeoutMap = new Map();
 
-      // Handle direct tap on screen button
       function toggleScreenAudio() {
         isGlobalUnmuted = !isGlobalUnmuted;
 
@@ -141,21 +140,32 @@
         }
       }
 
-      // Track Markers & Play Active Video
       targets.forEach(t => {
         const markerEl = document.getElementById(t.markerId);
         const videoEl = document.getElementById(t.videoId);
 
         markerEl.addEventListener("markerFound", () => {
+          // Clear any pending loss timeout if marker is found again quickly
+          if (loseTimeoutMap.has(t.markerId)) {
+            clearTimeout(loseTimeoutMap.get(t.markerId));
+            loseTimeoutMap.delete(t.markerId);
+          }
+
           activeVideo = videoEl;
           videoEl.muted = !isGlobalUnmuted;
           videoEl.play().catch(e => console.log(e));
         });
 
         markerEl.addEventListener("markerLost", () => {
-          videoEl.pause();
-          videoEl.currentTime = 0;
-          if (activeVideo === videoEl) activeVideo = null;
+          // Wait 1200ms before pausing to smooth out camera jitter
+          const timeout = setTimeout(() => {
+            videoEl.pause();
+            videoEl.currentTime = 0;
+            if (activeVideo === videoEl) activeVideo = null;
+            loseTimeoutMap.delete(t.markerId);
+          }, 1200);
+
+          loseTimeoutMap.set(t.markerId, timeout);
         });
       });
     </script>
