@@ -11,13 +11,13 @@
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
 
     <style>
-      /* Audio Unmute Banner */
-      #audio-banner {
+      /* Audio Unmute Overlay Button */
+      #play-btn {
         position: fixed;
-        bottom: 20px;
+        bottom: 30px;
         left: 50%;
         transform: translateX(-50%);
-        z-index: 99999;
+        z-index: 9999;
         padding: 14px 28px;
         background: #00E5FF;
         color: #000;
@@ -27,7 +27,7 @@
         font-weight: 800;
         font-size: 15px;
         letter-spacing: 0.5px;
-        box-shadow: 0 0 20px rgba(0, 229, 255, 0.7);
+        box-shadow: 0 0 20px rgba(0, 229, 255, 0.6);
         cursor: pointer;
         display: none;
       }
@@ -35,14 +35,12 @@
   </head>
   <body style="margin: 0; overflow: hidden; background-color: #000;">
 
-    <!-- Tap to Unmute Overlay -->
-    <button id="audio-banner" onclick="unlockAllAudio()">🔊 TAP TO UNMUTE AUDIO</button>
+    <!-- Tap to Unmute Button -->
+    <button id="play-btn">🔊 TAP TO UNMUTE</button>
 
-    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false; patternRatio: 0.90; trackingMethod: best;" vr-mode-ui="enabled: false">
+    <a-scene embedded arjs="patternRatio:0.90; trackingMethod: best;" vr-mode-ui="enabled: false">
 
       <a-assets timeout="10000">
-        <canvas id="icon-canvas" width="128" height="128"></canvas>
-
         <video id="vid-jathirathnalu" src="videos/Jathirathnalu.mp4" preload="auto" crossorigin="anonymous" loop playsinline webkit-playsinline muted></video>
         <video id="vid-meme" src="videos/Meme.mp4" preload="auto" crossorigin="anonymous" loop playsinline webkit-playsinline muted></video>
         <video id="vid-sapthagiri" src="videos/Sapthagiri.mp4" preload="auto" crossorigin="anonymous" loop playsinline webkit-playsinline muted></video>
@@ -93,6 +91,9 @@
       <a-entity camera cursor="fuse: false; rayOrigin: mouse" raycaster="objects: .clickable"></a-entity>
     </a-scene>
 
+    <!-- Canvas Texture for Dynamic Speaker Icon -->
+    <canvas id="icon-canvas" width="128" height="128" style="display: none;"></canvas>
+
     <script>
       const targets = [
         { markerId: "marker-jathirathnalu", videoId: "vid-jathirathnalu" },
@@ -102,12 +103,12 @@
         { markerId: "marker-video", videoId: "vid-video" }
       ];
 
-      const audioBanner = document.getElementById("audio-banner");
+      const playBtn = document.getElementById("play-btn");
       const canvas = document.getElementById("icon-canvas");
       const ctx = canvas.getContext("2d");
       
       let activeVideo = null;
-      let isUnmuted = false;
+      let isGlobalUnmuted = false;
 
       // Draw Speaker Icon Texture
       function drawSpeakerIcon(muted) {
@@ -128,20 +129,17 @@
         ctx.fillText(muted ? "🔇" : "🔊", 64, 66);
 
         document.querySelectorAll(".speaker-icon").forEach(el => {
-          const mesh = el.getObject3D('mesh');
-          if (mesh && mesh.material && mesh.material.map) {
-            mesh.material.map.needsUpdate = true;
+          if (el.components && el.components.material && el.components.material.material.map) {
+            el.components.material.material.map.needsUpdate = true;
           }
         });
       }
 
-      window.addEventListener("load", () => {
-        drawSpeakerIcon(true);
-      });
+      drawSpeakerIcon(true);
 
-      // Synchronous User Interaction Audio Unlocking
-      function unlockAllAudio() {
-        isUnmuted = true;
+      // Force-unmute function executing inside direct click handler
+      function handleUserUnmuteGesture() {
+        isGlobalUnmuted = true;
 
         targets.forEach(t => {
           const v = document.getElementById(t.videoId);
@@ -151,15 +149,32 @@
 
         if (activeVideo) {
           activeVideo.muted = false;
-          activeVideo.volume = 1.0;
-          activeVideo.play();
+          activeVideo.play().then(() => {
+            playBtn.style.display = "none";
+            drawSpeakerIcon(false);
+          }).catch(err => console.log("Playback error:", err));
+        } else {
+          playBtn.style.display = "none";
+          drawSpeakerIcon(false);
         }
-
-        audioBanner.style.display = "none";
-        drawSpeakerIcon(false);
       }
 
-      // Marker Event Listeners
+      // Direct Event Bindings
+      playBtn.addEventListener("click", handleUserUnmuteGesture);
+      
+      // Fallback: Tapping anywhere on screen unmutes if button was active
+      window.addEventListener("touchstart", function unlockAudio() {
+        if (!isGlobalUnmuted) {
+          handleUserUnmuteGesture();
+          window.removeEventListener("touchstart", unlockAudio);
+        }
+      }, { once: true });
+
+      document.querySelectorAll(".speaker-icon").forEach(iconPlane => {
+        iconPlane.addEventListener("click", handleUserUnmuteGesture);
+      });
+
+      // Marker Tracking
       targets.forEach(t => {
         const markerEl = document.getElementById(t.markerId);
         const videoEl = document.getElementById(t.videoId);
@@ -167,25 +182,230 @@
         markerEl.addEventListener("markerFound", () => {
           activeVideo = videoEl;
 
-          if (isUnmuted) {
+          if (isGlobalUnmuted) {
             videoEl.muted = false;
-            videoEl.volume = 1.0;
-            audioBanner.style.display = "none";
+            playBtn.style.display = "none";
             drawSpeakerIcon(false);
           } else {
             videoEl.muted = true;
-            audioBanner.style.display = "block";
+            playBtn.style.display = "block";
             drawSpeakerIcon(true);
           }
 
-          videoEl.play().catch(e => console.log("Play error:", e));
+          videoEl.play().catch(e => console.log(e));
         });
 
         markerEl.addEventListener("markerLost", () => {
           videoEl.pause();
           videoEl.currentTime = 0;
           if (activeVideo === videoEl) activeVideo = null;
-          audioBanner.style.display = "none";
+          playBtn.style.display = "none";
+        });
+      });
+    </script>
+  </body>
+</html><!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>MEMEVERSE WebAR - Multi-Target Engine</title>
+
+    <!-- A-Frame & AR.js Libraries -->
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+
+    <style>
+      /* Audio Unmute Overlay Button */
+      #play-btn {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 9999;
+        padding: 14px 28px;
+        background: #00E5FF;
+        color: #000;
+        border: none;
+        border-radius: 30px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-weight: 800;
+        font-size: 15px;
+        letter-spacing: 0.5px;
+        box-shadow: 0 0 20px rgba(0, 229, 255, 0.6);
+        cursor: pointer;
+        display: none;
+      }
+    </style>
+  </head>
+  <body style="margin: 0; overflow: hidden; background-color: #000;">
+
+    <!-- Tap to Unmute Button -->
+    <button id="play-btn">🔊 TAP TO UNMUTE</button>
+
+    <a-scene embedded arjs="patternRatio:0.90; trackingMethod: best;" vr-mode-ui="enabled: false">
+
+      <a-assets timeout="10000">
+        <video id="vid-jathirathnalu" src="videos/Jathirathnalu.mp4" preload="auto" crossorigin="anonymous" loop playsinline webkit-playsinline muted></video>
+        <video id="vid-meme" src="videos/Meme.mp4" preload="auto" crossorigin="anonymous" loop playsinline webkit-playsinline muted></video>
+        <video id="vid-sapthagiri" src="videos/Sapthagiri.mp4" preload="auto" crossorigin="anonymous" loop playsinline webkit-playsinline muted></video>
+        <video id="vid-vm" src="videos/VM.mp4" preload="auto" crossorigin="anonymous" loop playsinline webkit-playsinline muted></video>
+        <video id="vid-video" src="videos/video.mp4" preload="auto" crossorigin="anonymous" loop playsinline webkit-playsinline muted></video>
+      </a-assets>
+
+      <!-- 1. Jathirathnalu Target -->
+      <a-marker id="marker-jathirathnalu" type="pattern" url="./Markers/Jathirathnalu marker.patt" smooth="true" smoothCount="10">
+        <a-entity position="0 0.05 0" rotation="-90 0 0">
+          <a-video src="#vid-jathirathnalu" width="0.7" height="0.393" position="0 0 0"></a-video>
+          <a-plane class="speaker-icon clickable" width="0.1" height="0.1" position="0.28 -0.14 0.01" material="transparent: true; opacity: 0.95; src: #icon-canvas"></a-plane>
+        </a-entity>
+      </a-marker>
+
+      <!-- 2. Meme Target -->
+      <a-marker id="marker-meme" type="pattern" url="./Markers/Meme marker.patt" smooth="true" smoothCount="10">
+        <a-entity position="0 0.05 0" rotation="-90 0 0">
+          <a-video src="#vid-meme" width="0.7" height="0.393" position="0 0 0"></a-video>
+          <a-plane class="speaker-icon clickable" width="0.1" height="0.1" position="0.28 -0.14 0.01" material="transparent: true; opacity: 0.95; src: #icon-canvas"></a-plane>
+        </a-entity>
+      </a-marker>
+
+      <!-- 3. Sapthagiri Target -->
+      <a-marker id="marker-sapthagiri" type="pattern" url="./Markers/Sapthgiri marker.patt" smooth="true" smoothCount="10">
+        <a-entity position="0 0.05 0" rotation="-90 0 0">
+          <a-video src="#vid-sapthagiri" width="0.7" height="0.393" position="0 0 0"></a-video>
+          <a-plane class="speaker-icon clickable" width="0.1" height="0.1" position="0.28 -0.14 0.01" material="transparent: true; opacity: 0.95; src: #icon-canvas"></a-plane>
+        </a-entity>
+      </a-marker>
+
+      <!-- 4. VM Target -->
+      <a-marker id="marker-vm" type="pattern" url="./Markers/VM marker.patt" smooth="true" smoothCount="10">
+        <a-entity position="0 0.05 0" rotation="-90 0 0">
+          <a-video src="#vid-vm" width="0.7" height="0.393" position="0 0 0"></a-video>
+          <a-plane class="speaker-icon clickable" width="0.1" height="0.1" position="0.28 -0.14 0.01" material="transparent: true; opacity: 0.95; src: #icon-canvas"></a-plane>
+        </a-entity>
+      </a-marker>
+
+      <!-- 5. Video Target -->
+      <a-marker id="marker-video" type="pattern" url="./Markers/Video marker.patt" smooth="true" smoothCount="10">
+        <a-entity position="0 0.05 0" rotation="-90 0 0">
+          <a-video src="#vid-video" width="0.7" height="0.393" position="0 0 0"></a-video>
+          <a-plane class="speaker-icon clickable" width="0.1" height="0.1" position="0.28 -0.14 0.01" material="transparent: true; opacity: 0.95; src: #icon-canvas"></a-plane>
+        </a-entity>
+      </a-marker>
+
+      <a-entity camera cursor="fuse: false; rayOrigin: mouse" raycaster="objects: .clickable"></a-entity>
+    </a-scene>
+
+    <!-- Canvas Texture for Dynamic Speaker Icon -->
+    <canvas id="icon-canvas" width="128" height="128" style="display: none;"></canvas>
+
+    <script>
+      const targets = [
+        { markerId: "marker-jathirathnalu", videoId: "vid-jathirathnalu" },
+        { markerId: "marker-meme", videoId: "vid-meme" },
+        { markerId: "marker-sapthagiri", videoId: "vid-sapthagiri" },
+        { markerId: "marker-vm", videoId: "vid-vm" },
+        { markerId: "marker-video", videoId: "vid-video" }
+      ];
+
+      const playBtn = document.getElementById("play-btn");
+      const canvas = document.getElementById("icon-canvas");
+      const ctx = canvas.getContext("2d");
+      
+      let activeVideo = null;
+      let isGlobalUnmuted = false;
+
+      // Draw Speaker Icon Texture
+      function drawSpeakerIcon(muted) {
+        ctx.clearRect(0, 0, 128, 128);
+        
+        ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+        ctx.beginPath();
+        ctx.arc(64, 64, 54, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = muted ? "#FF3366" : "#00E5FF";
+        ctx.lineWidth = 6;
+        ctx.stroke();
+
+        ctx.font = "50px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(muted ? "🔇" : "🔊", 64, 66);
+
+        document.querySelectorAll(".speaker-icon").forEach(el => {
+          if (el.components && el.components.material && el.components.material.material.map) {
+            el.components.material.material.map.needsUpdate = true;
+          }
+        });
+      }
+
+      drawSpeakerIcon(true);
+
+      // Force-unmute function executing inside direct click handler
+      function handleUserUnmuteGesture() {
+        isGlobalUnmuted = true;
+
+        targets.forEach(t => {
+          const v = document.getElementById(t.videoId);
+          v.muted = false;
+          v.volume = 1.0;
+        });
+
+        if (activeVideo) {
+          activeVideo.muted = false;
+          activeVideo.play().then(() => {
+            playBtn.style.display = "none";
+            drawSpeakerIcon(false);
+          }).catch(err => console.log("Playback error:", err));
+        } else {
+          playBtn.style.display = "none";
+          drawSpeakerIcon(false);
+        }
+      }
+
+      // Direct Event Bindings
+      playBtn.addEventListener("click", handleUserUnmuteGesture);
+      
+      // Fallback: Tapping anywhere on screen unmutes if button was active
+      window.addEventListener("touchstart", function unlockAudio() {
+        if (!isGlobalUnmuted) {
+          handleUserUnmuteGesture();
+          window.removeEventListener("touchstart", unlockAudio);
+        }
+      }, { once: true });
+
+      document.querySelectorAll(".speaker-icon").forEach(iconPlane => {
+        iconPlane.addEventListener("click", handleUserUnmuteGesture);
+      });
+
+      // Marker Tracking
+      targets.forEach(t => {
+        const markerEl = document.getElementById(t.markerId);
+        const videoEl = document.getElementById(t.videoId);
+
+        markerEl.addEventListener("markerFound", () => {
+          activeVideo = videoEl;
+
+          if (isGlobalUnmuted) {
+            videoEl.muted = false;
+            playBtn.style.display = "none";
+            drawSpeakerIcon(false);
+          } else {
+            videoEl.muted = true;
+            playBtn.style.display = "block";
+            drawSpeakerIcon(true);
+          }
+
+          videoEl.play().catch(e => console.log(e));
+        });
+
+        markerEl.addEventListener("markerLost", () => {
+          videoEl.pause();
+          videoEl.currentTime = 0;
+          if (activeVideo === videoEl) activeVideo = null;
+          playBtn.style.display = "none";
         });
       });
     </script>
